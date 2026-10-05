@@ -1,0 +1,33 @@
+{
+  "name": "syntecxhub_user_management_system",
+  "version": "1.0.0",
+  "description": "User management REST API with JWT authentication and role-based access",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed:admin": "node scripts/createAdmin.js",
+    "test": "node test/api.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bobalenandkumar9-cmd/Syntecxhub_User_Management_System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bobalenandkumar9-cmd/Syntecxhub_User_Management_System/issues"
+  },
+  "homepage": "https://github.com/bobalenandkumar9-cmd/Syntecxhub_User_Management_System#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.10.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
