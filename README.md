@@ -1,194 +1,229 @@
 # Syntecxhub User Management System
 
-A RESTful User Management API developed as part of the **Syntecxhub Web Development Internship**.
+A RESTful API for user registration, authentication and role-based user management, built with **Node.js, Express and MongoDB**. Built as part of an internship project at **Syntecxhub**.
 
-## 📌 Project Overview
+![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
+![JWT](https://img.shields.io/badge/Auth-JWT-orange)
 
-The User Management System is a backend REST API that allows users to be created, retrieved, updated, and deleted.
+## Features
 
-The application uses **Node.js, Express.js, MongoDB, and Mongoose** and includes password hashing, basic authentication, input validation, and API testing with Postman.
+- User registration and login with **JWT** authentication
+- Passwords hashed with **bcrypt** and never returned in responses
+- **Role-based access control** (`user` and `admin`)
+- Full **CRUD** for users, with pagination on the user list
+- Users can manage their own account; admins can manage everyone
+- Input validation (email format, password length, valid ids)
+- Centralized error handling with correct HTTP status codes
+- Admin seeding script and an offline test suite
 
-## 🚀 Features
+## Tech Stack
 
-- Create a new user
-- Retrieve all users
-- Retrieve a user by ID
-- Update user information
-- Delete a user
-- MongoDB database integration
-- Mongoose schema and data modeling
-- Password hashing using bcrypt
-- JWT-based authentication
-- Protected API routes
-- Input validation
-- Error handling
-- RESTful API architecture
-- Postman API testing
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js |
+| Framework | Express 5 |
+| Database | MongoDB with Mongoose |
+| Auth | JSON Web Tokens (`jsonwebtoken`) |
+| Password hashing | `bcryptjs` |
+| Config | `dotenv` |
 
-## 🛠️ Technologies Used
+## Getting Started
 
-- **Node.js**
-- **Express.js**
-- **MongoDB**
-- **Mongoose**
-- **bcryptjs**
-- **JSON Web Token (JWT)**
-- **Postman**
-- **Git & GitHub**
+### Prerequisites
 
-## 📂 Project Structure
+- [Node.js](https://nodejs.org/) 18 or newer
+- MongoDB running locally, or a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
 
-```text
-Syntecxhub_User_Management_System
-│
-├── config
-│   └── db.js
-│
-├── controllers
-│   └── userController.js
-│
-├── middleware
-│   └── authMiddleware.js
-│
-├── models
-│   └── User.js
-│
-├── routes
-│   └── userRoutes.js
-│
-├── .env
-├── .gitignore
-├── package.json
-├── package-lock.json
-├── README.md
-└── server.js
-```
-
-## ⚙️ Installation
-
-### 1. Clone the repository
+### Installation
 
 ```bash
-git clone https://github.com/bobalenandkumar9-cmd/Syntecxhub_User_Management_System.git
-```
-
-### 2. Navigate to the project directory
-
-```bash
+git clone <your-repo-url>
 cd Syntecxhub_User_Management_System
-```
-
-### 3. Install dependencies
-
-```bash
 npm install
 ```
 
-## 🔐 Environment Variables
+### Environment variables
 
-Create a `.env` file in the root directory:
-
-```env
-MONGO_URI=mongodb://127.0.0.1:27017/syntecxhub_user_management
-PORT=5000
-JWT_SECRET=your_secret_key
-```
-
-> **Important:** Never upload the `.env` file to GitHub because it may contain private credentials and secret keys.
-
-## ▶️ Run the Application
-
-Start the server using:
+Copy the example file and fill in your values:
 
 ```bash
-node server.js
+cp .env.example .env        # on Windows: copy .env.example .env
 ```
 
-The API will run at:
+| Variable | Description | Example |
+|---|---|---|
+| `PORT` | Server port (default `5000`) | `5000` |
+| `MONGO_URI` | MongoDB connection string | `mongodb://127.0.0.1:27017/user_management` |
+| `JWT_SECRET` | Secret used to sign tokens. Use a long random string | `a1b2c3...` |
+| `JWT_EXPIRES_IN` | Token lifetime (default `7d`) | `7d` |
+| `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Used only by the admin seed script | |
 
-```text
-http://localhost:5000
+> Never commit your `.env` file. It is already listed in `.gitignore`.
+
+### Run the server
+
+```bash
+npm run dev      # development, auto-restarts with nodemon
+npm start        # production
 ```
 
-## 📡 API Endpoints
+The API is now available at `http://localhost:5000`.
 
-### Create User
+### Create the first admin
 
-```http
-POST /api/users
+Registration always creates a normal `user`, so the first admin is created with a script. Set the `ADMIN_*` values in `.env`, then run:
+
+```bash
+npm run seed:admin
 ```
 
-Example request:
+If the email already exists, that account is promoted to admin.
+
+## API Reference
+
+Base URL: `http://localhost:5000/api/users`
+
+Protected routes need this header:
+
+```
+Authorization: Bearer <token>
+```
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/` | Public | Register a new user (role is always `user`) |
+| `POST` | `/login` | Public | Log in and receive a JWT |
+| `GET` | `/profile` | Logged in | Get the current user's profile |
+| `GET` | `/?page=1&limit=10` | Admin | List all users (paginated) |
+| `GET` | `/:id` | Self or admin | Get a user by id |
+| `PUT` | `/:id` | Self or admin | Update `name`, `email`, `password`. Only an admin can change `role` |
+| `DELETE` | `/:id` | Self or admin | Delete a user |
+
+### Examples
+
+**Register**
+
+```bash
+curl -X POST http://localhost:5000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"secret123"}'
+```
 
 ```json
 {
-    "name": "Nandkumar",
-    "email": "nandkumar@example.com",
-    "password": "123456"
+  "message": "User created successfully",
+  "user": {
+    "id": "6650f1c2a1b2c3d4e5f67890",
+    "name": "Test User",
+    "email": "test@example.com",
+    "role": "user"
+  },
+  "token": "<jwt>"
 }
 ```
 
-### Get All Users
+**Login**
 
-```http
-GET /api/users
+```bash
+curl -X POST http://localhost:5000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"secret123"}'
 ```
-
-### Get User by ID
-
-```http
-GET /api/users/:id
-```
-
-### Update User
-
-```http
-PUT /api/users/:id
-```
-
-Example request:
 
 ```json
 {
-    "name": "Nandkumar Bobale",
-    "email": "nandkumar@example.com"
+  "message": "Login successful",
+  "user": { "id": "6650f1c2a1b2c3d4e5f67890", "name": "Test User", "email": "test@example.com", "role": "user" },
+  "token": "<jwt>"
 }
 ```
 
-### Delete User
+**Get profile**
 
-```http
-DELETE /api/users/:id
+```bash
+curl http://localhost:5000/api/users/profile \
+  -H "Authorization: Bearer <token>"
 ```
 
-## 🔒 Authentication
+**List users (admin)**
 
-The API uses **JWT-based authentication** to secure protected endpoints.
-
-Passwords are hashed using **bcryptjs** before being stored in the database.
-
-Authentication tokens are sent using the HTTP `Authorization` header:
-
-```text
-Authorization: Bearer <your_token>
+```bash
+curl "http://localhost:5000/api/users?page=1&limit=5" \
+  -H "Authorization: Bearer <admin-token>"
 ```
 
-## 🧪 API Testing
+### Status codes
 
-All API endpoints are tested using **Postman**.
+| Code | Meaning |
+|---|---|
+| `200` | Success |
+| `201` | User created |
+| `400` | Validation error, invalid id, or malformed JSON |
+| `401` | Missing, invalid or expired token, or wrong login credentials |
+| `403` | Not allowed (for example, a normal user calling an admin route) |
+| `404` | User or route not found |
+| `409` | Email already in use |
+| `500` | Server error |
 
-The testing includes:
+## Project Structure
 
-- User creation
-- User retrieval
-- User update
-- User deletion
-- Authentication
-- Invalid input handling
-- Error responses
+```
+Syntecxhub_User_Management_System/
+├── app.js                    # Express app: routes and error handling
+├── server.js                 # Loads env, connects to MongoDB, starts server
+├── config/
+│   └── db.js                 # MongoDB connection
+├── models/
+│   └── user.js               # User schema (hashed password, roles)
+├── controllers/
+│   └── userController.js     # Request handlers
+├── routes/
+│   └── userRoutes.js         # Route definitions
+├── middleware/
+│   ├── authMiddleware.js     # protect (JWT) and authorize (roles)
+│   └── errorMiddleware.js    # 404 and error handlers
+├── utils/
+│   └── generateToken.js      # JWT helper
+├── scripts/
+│   └── createAdmin.js        # Admin seeding script
+├── test/
+│   └── api.test.js           # Offline API tests
+├── .env.example
+└── package.json
+```
 
-## 🗄️ Database
+## Testing
 
-The application uses **MongoDB** for data storage and **Mongoose** for schema definition and database interaction.
+```bash
+npm test
+```
 
-Each user contains
+The test suite runs without a database. It covers registration, login, JWT protection, role checks, validation and CRUD.
+
+## Security Notes
+
+- Passwords are hashed with bcrypt before they are stored.
+- Login returns the same error for an unknown email and a wrong password.
+- Users cannot make themselves admin through registration or profile updates.
+- A token stops working once its user has been deleted.
+- Secrets live in `.env`, which is not committed.
+
+## Screenshots
+
+Add your Postman screenshots to a `screenshots/` folder and link them here:
+
+```markdown
+![Register](screenshots/register.png)
+![Login](screenshots/login.png)
+![Admin user list](screenshots/admin-users.png)
+```
+
+## Author
+
+**Nandkumar Bobale**
+B.Tech Computer Engineering, Don Bosco Institute of Technology, Mumbai
+GitHub: [your-username](https://github.com/your-username)
+
+
